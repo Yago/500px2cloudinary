@@ -1,0 +1,8 @@
+{
+  "username": "USERNAME",
+  "cloudinary": {
+    "cloud_name": "XXXXXXXX",
+    "api_key": "XXXXXXXXXXXXXXXX",
+    "api_secret": "XXXXXXXXXXXXXXXXXXXXXXXX"
+  }
+}

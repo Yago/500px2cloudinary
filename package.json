@@ -1,0 +1,14 @@
+{
+  "name": "500px2cloudinary",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cloudinary": "^1.13.2",
+    "ora": "^3.1.0",
+    "puppeteer": "^1.12.2"
+  }
+}
