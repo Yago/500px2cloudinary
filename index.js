@@ -7,6 +7,11 @@ const config = require('./config.json');
 
 cloudinary.config(config.cloudinary);
 
+/**
+ * Helper to deal with 500px infinite scroll
+ *
+ * @param {*} page puppeteer page
+ */
 const autoScroll = async page => {
   await page.evaluate(async () => {
     await new Promise((resolve, reject) => {
@@ -26,6 +31,11 @@ const autoScroll = async page => {
   });
 };
 
+/**
+ * Helper to format picture object attributes
+ *
+ * @param {object} img raw object from 500px data
+ */
 const formatMeta = img => ({
   id: img.id,
   title: img.name || 'unknown',
@@ -41,15 +51,24 @@ const formatMeta = img => ({
   h: (img.height * 2048) / img.width,
 });
 
+/**
+ * Main runtime
+ * Use Puppeteer to scrap the user's page and retrieve image from Ajax calls
+ * Upload everything to Cloudinary
+ * Create pictures.json as a result
+ */
 (async () => {
+  // Init tools
   const spinner = ora("Retrieve user's picture").start();
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   await page.goto(`https://500px.com/${config.username}`);
 
+  // Get first 50 pictures
   const bootstrap = await page.evaluate(() => App.bootstrap.userdata.photos);
   const pictures = bootstrap.map(img => formatMeta(img));
 
+  // Hook on Ajax responses and push data to pictures array
   page.on('response', res => {
     if (res.url().includes('api.500px.com') && res.status() === 200) {
       res.json().then(data => {
@@ -60,9 +79,11 @@ const formatMeta = img => ({
     }
   });
 
+  // Scroll to the infinite (or at least to the bottom)
   await autoScroll(page);
   spinner.text = 'Uploading to Cloudinary';
 
+  // Push everything to Cloudinary 500px folder
   const cloudinaryPicture = [];
   const cloudinaryPromises = pictures.map(picture => {
     return new Promise((resolve, reject) => {
@@ -87,6 +108,7 @@ const formatMeta = img => ({
 
   await Promise.all(cloudinaryPromises);
 
+  // Create pictures.json (can be used on your app)
   spinner.text = 'Creating pictures.json';
   fs.writeFileSync(
     './pictures.json',
@@ -94,6 +116,7 @@ const formatMeta = img => ({
     'utf-8',
   );
 
+  // Conclusion
   await browser.close();
   spinner.stop();
   console.log('All pictures successfully uploaded to Cloudinary 🎉');
