@@ -1,5 +1,6 @@
 const fs = require('fs');
 const puppeteer = require('puppeteer');
+const download = require('download');
 const ora = require('ora');
 const cloudinary = require('cloudinary').v2;
 
@@ -81,40 +82,46 @@ const formatMeta = img => ({
 
   // Scroll to the infinite (or at least to the bottom)
   await autoScroll(page);
-  spinner.text = 'Uploading to Cloudinary';
 
   // Push everything to Cloudinary 500px folder
-  const cloudinaryPicture = [];
-  const cloudinaryPromises = pictures.map(picture => {
-    return new Promise((resolve, reject) => {
-      cloudinary.uploader.upload(
-        picture.src,
-        {
-          public_id: `500px/${picture.id}`,
-          context: {
-            caption: picture.desc,
-            alt: picture.title,
-            ...picture.taken_with,
-          },
-        },
-        (err, res) => {
-          if (err) reject(error);
-          cloudinaryPicture.push({ ...picture, ...res });
-          resolve();
-        },
-      );
-    });
-  });
+  // spinner.text = 'Uploading to Cloudinary';
+  // const cloudinaryPicture = [];
+  // const cloudinaryPromises = pictures.map(picture => {
+  //   return new Promise((resolve, reject) => {
+  //     cloudinary.uploader.upload(
+  //       picture.src,
+  //       {
+  //         public_id: `500px/${picture.id}`,
+  //         context: {
+  //           caption: picture.desc,
+  //           alt: picture.title,
+  //           ...picture.taken_with,
+  //         },
+  //       },
+  //       (err, res) => {
+  //         if (err) reject(error);
+  //         cloudinaryPicture.push({ ...picture, ...res });
+  //         resolve();
+  //       },
+  //     );
+  //   });
+  // });
 
-  await Promise.all(cloudinaryPromises);
+  // await Promise.all(cloudinaryPromises);
+
+  // console.log(pictures.map(i => i.src));
+
+  spinner.text = 'Downloading locally';
+  const downloadPromises = pictures.map(picture =>
+    download(picture.src, 'download', {
+      filename: `portfolio-${picture.id}.jpg`,
+    }),
+  );
+  await Promise.all(downloadPromises);
 
   // Create pictures.json (can be used on your app)
   spinner.text = 'Creating pictures.json';
-  fs.writeFileSync(
-    './pictures.json',
-    JSON.stringify(cloudinaryPicture),
-    'utf-8',
-  );
+  fs.writeFileSync('./pictures.json', JSON.stringify(pictures), 'utf-8');
 
   // Conclusion
   await browser.close();
