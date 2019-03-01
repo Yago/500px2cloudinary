@@ -43,7 +43,8 @@ const formatMeta = img => ({
   desc: img.description || 'unknown',
   taken_with: {
     camera: img.camera || 'unknown',
-    lens: img.lens || 'unknown',
+    focal_length: img.focal_length || 'unknown',
+    aperture: img.aperture || 'unknown',
     iso: img.iso || 'unknown',
     shutter_speed: img.shutter_speed || 'unknown',
   },
